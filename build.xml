@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<project name="Zen L'initie" default="all" basedir=".">
+
+  <property name="main.build.dir" value="class"/>
+  <property name="main.src.dir" value="src"/>
+  <property name="test.build.dir" value="class"/>
+  <property name="test.src.dir" value="src"/>
+
+
+    <path id="project.classpath">
+    <fileset dir="class">
+      <include name="*.class"/>
+    </fileset>
+    <pathelement location="class" />
+  </path>
+
+    <path id="classpath.test">
+        <pathelement location="src/lib/junit-4.13.jar"/>
+        <pathelement location="src/lib/hamcrest-core-1.3.jar"/>
+        <pathelement location="src"/>
+    </path>
+
+    <!--///////////////////////////////////////////////////////////////-->
+
+    <target name = "info">
+      <echo>Programmation Project - IUT Vannes 2020</echo>
+    </target>
+
+    <!--///////////////////////////////////////////////////////////////-->
+
+    <target name="clean" depends="info" description="Removes previous build">
+        <delete dir="class"/>
+        <delete dir="javaDoc"/>
+        <delete dir="report"/>
+    </target>
+
+    <!--///////////////////////////////////////////////////////////////-->
+
+    <target name="compile-main" depends="clean" description="Compile all the java files">
+        <mkdir dir="class"/>
+        <javac srcdir="src" destdir="class" debug = "true" includeantruntime="false">
+            <classpath refid="classpath.test"/>
+        </javac>
+    </target>
+
+    <!--///////////////////////////////////////////////////////////////-->
+
+    <target name="execute" depends="compile-main" description="Execute the programm" >
+    <java classname="LaunchGame" fork="true">
+      <classpath refid="project.classpath"/>
+    </java>
+  </target>
+
+    <!--///////////////////////////////////////////////////////////////-->
+
+
+    <target name="javaDoc" depends="compile-main" description="Generates the JavaDoc">
+      <mkdir dir="javaDoc"/>
+      <javadoc sourcepath="src" destdir="javaDoc" />
+    </target>
+
+    <!--///////////////////////////////////////////////////////////////-->
+
+    <target name="test" depends="javaDoc" description="Lance les tests et fait un rapport">
+
+        <javac includeantruntime="false" srcdir="src" destdir="class"/>
+
+        <!-- On créer de dossier pour les rapports -->
+        <mkdir dir="report"/>
+        <mkdir dir="report/xmlfiles"/>
+
+
+        <junit printsummary="on">
+
+        <!-- On voudrait que les rapports soit en XML -->
+            <formatter type="xml"/>
+
+            <!-- On définit le classpath -->
+            <classpath id="classpath.test">
+                <pathelement location="src/lib/junit-4.13.jar"/>
+                <pathelement location="src/lib/hamcrest-core-1.3.jar"/>
+                <pathelement location="src"/>
+                <pathelement location="class"/>
+            </classpath>
+
+            <!-- Liste des tests -->
+            <test name="test.AutoPlayerTest" />
+            <test name="test.BoardTest" />
+            <test name="test.HumanPlayerTest" />
+            <test name="test.PawnTest" />
+
+        </junit>
+
+
+        <!-- On déplace les fichiers XML dans un autre dossier-->
+        <move file="TEST-test.AutoPlayerTest.xml" tofile="report/xmlfiles/TEST-test.AutoPlayerTest.xml"/>
+        <move file="TEST-test.BoardTest.xml" tofile="report/xmlfiles/TEST-test.BoardTest.xml"/>
+        <move file="TEST-test.HumanPlayerTest.xml" tofile="report/xmlfiles/TEST-test.HumanPlayerTest.xml"/>
+        <move file="TEST-test.PawnTest.xml" tofile="report/xmlfiles/TEST-test.PawnTest.xml"/>
+
+
+        <!-- On configure le rapport -->
+        <junitreport todir="report">
+            <fileset dir="report/xmlfiles">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="report"/>
+        </junitreport>
+
+    </target>
+
+    <!--///////////////////////////////////////////////////////////////-->
+
+    <target name="jar" depends="test" description="Create a jar file">
+        <jar destfile="Herard_Zen.jar" basedir="class">
+            <manifest>
+                <attribute name ="Main-Class" value="LaunchGame"/>
+            </manifest>
+        </jar>
+    </target>
+
+</project>
